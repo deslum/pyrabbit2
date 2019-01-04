@@ -652,8 +652,11 @@ class Client(object):
         :param str vhost: Vhost where queues in 'names' live.
         :param list names: OPTIONAL - Specific queues to show depths for. If
                 None, show depths for all queues in 'vhost'.
+        :returns: Nomber of messages in the queues
+        :rtype: dict
         """
 
+        depths = {}
         vhost = quote(vhost, '')
         if not names:
             # get all queues in vhost
@@ -661,12 +664,14 @@ class Client(object):
             queues = self._call(path, 'GET')
             for queue in queues:
                 depth = queue['messages']
-                print("\t%s: %s" % (queue, depth))
+                depths[queue] = depth
         else:
             # get the named queues only.
             for name in names:
                 depth = self.get_queue_depth(vhost, name)
-                print("\t%s: %s" % (name, depth))
+                depths[name] = depth
+
+        return depths
 
     def purge_queues(self, queues):
         """
