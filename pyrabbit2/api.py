@@ -664,7 +664,7 @@ class Client(object):
             queues = self._call(path, 'GET')
             for queue in queues:
                 depth = queue['messages']
-                depths[queue] = depth
+                depths[queue['name']] = depth
         else:
             # get the named queues only.
             for name in names:
