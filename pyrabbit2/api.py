@@ -54,6 +54,7 @@ class Client(object):
             'whoami': 'whoami',
             'queues_by_vhost': 'queues/%s',
             'queues_by_name': 'queues/%s/%s',
+            'queue_action': 'queues/%s/%s/actions',
             'exchanges_by_vhost': 'exchanges/%s',
             'exchange_by_name': 'exchanges/%s/%s',
             'live_test': 'aliveness-test/%s',
@@ -756,6 +757,25 @@ class Client(object):
         qname = quote(qname, '')
         path = Client.urls['queues_by_name'] % (vhost, qname)
         return self._call(path, 'DELETE', headers=Client.json_headers)
+
+    def queue_action(self, vhost, name, **kwargs):
+        """
+        Currently the actions which are supported are sync and cancel_sync
+
+        :param string vhost: The vhost to create the queue in.
+        :param string name: The name of the queue
+        """
+
+        vhost = quote(vhost, '')
+        name = quote(name, '')
+        path = Client.urls['queue_action'] % (vhost, name)
+
+        body = json.dumps(kwargs)
+
+        return self._call(path,
+                          'POST',
+                          body,
+                          headers=Client.json_headers)
 
     def get_messages(self, vhost, qname, count=1,
                      requeue=False, truncate=None, encoding='auto'):
