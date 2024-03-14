@@ -65,7 +65,9 @@ class Client(object):
             'bindings_by_dest_exch': 'exchanges/%s/%s/bindings/destination',
             'bindings_on_queue': 'queues/%s/%s/bindings',
             'bindings_between_exch_queue': 'bindings/%s/e/%s/q/%s',
+            'bindings_between_exch_exch': 'bindings/%s/e/%s/e/%s',
             'rt_bindings_between_exch_queue': 'bindings/%s/e/%s/q/%s/%s',
+            'rt_bindings_between_exch_exch': 'bindings/%s/e/%s/e/%s/%s',
             'get_from_queue': 'queues/%s/%s/get',
             'publish_to_exchange': 'exchanges/%s/%s/publish',
             'vhosts_by_name': 'vhosts/%s',
@@ -933,6 +935,28 @@ class Client(object):
                              headers=Client.json_headers)
         return binding
 
+    def create_exchange_binding(self, vhost, source, destination, rt_key=None, args=None):
+        """
+        Creates a binding between two exchanges on a given vhost.
+        :param string vhost: vhost housing the exchange/queue to bind
+        :param string source: the source exchange of the binding
+        :param string destination: the target echnage of the binding
+        :param string rt_key: the routing key to use for the binding
+        :param dict args: extra arguments to associate w/ the binding.
+        :returns: boolean
+        """
+
+        vhost = quote(vhost, '')
+        source = quote(source, '')
+        destination = quote(destination, '')
+        body = json.dumps({'routing_key': rt_key, 'arguments': args or []})
+        path = Client.urls['bindings_between_exch_exch'] % (vhost,
+                                                             source,
+                                                             destination)
+        binding = self._call(path, 'POST', body=body,
+                             headers=Client.json_headers)
+        return binding
+
     def delete_binding(self, vhost, exchange, queue, rt_key):
         """
         Deletes a binding between an exchange and a queue on a given vhost.
@@ -950,6 +974,25 @@ class Client(object):
         path = Client.urls['rt_bindings_between_exch_queue'] % (vhost,
                                                                 exchange,
                                                                 queue,
+                                                                rt_key)
+        return self._call(path, 'DELETE', headers=Client.json_headers)
+
+    def delete_exchange_binding(self, vhost, source, destination, rt_key):
+        """
+        Deletes a binding between two exchanges on a given vhost.
+        :param string vhost: vhost housing the exchange/queue to bind
+        :param string source: the source exchange of the binding
+        :param string destination: the target exchange of the binding
+        :param string rt_key: the routing key to use for the binding
+        """
+
+        vhost = quote(vhost, '')
+        source = quote(source, '')
+        destination = quote(destination, '')
+        # body = ''  # UNUSED
+        path = Client.urls['rt_bindings_between_exch_exch'] % (vhost,
+                                                                source,
+                                                                destination,
                                                                 rt_key)
         return self._call(path, 'DELETE', headers=Client.json_headers)
 
